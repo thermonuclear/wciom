@@ -1,4 +1,4 @@
-## wcioml.dev 
+## wciom.dev 
 тестовое задание.<br>
  
 Использованы: php 7.4, mysql 8, codeception, phinx, kohana, docker
