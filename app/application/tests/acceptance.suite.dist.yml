@@ -1,0 +1,21 @@
+# Codeception Test Suite Configuration
+#
+# Suite for acceptance tests.
+# Perform tests in browser using the WebDriver or PhpBrowser.
+# If you need both WebDriver and PHPBrowser tests - create a separate suite.
+
+actor: AcceptanceTester
+modules:
+    enabled:
+        - PhpBrowser:
+            url: https://cms.obr.nd
+        - \Helper\Acceptance
+step_decorators: ~
+# для запуска с другими параметрами используем параметр --env
+env:
+    # для запуска на dev сервере, пример: php vendor/bin/codecept run --env testing-smilik
+    testing-smilik:
+        modules:
+            config:
+                PhpBrowser:
+                    url: https://dev-cms-smilik.tigersmile.ru

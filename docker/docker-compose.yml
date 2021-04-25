@@ -1,0 +1,111 @@
+# Версия docker-compose
+version: '3.8'
+
+# Создаем отдельные контейнеры
+services:
+    # контейнер с nginx
+    nginx:
+        build:
+            context: .
+            dockerfile: nginx.dockerfile
+        volumes:
+            # папка с проектом
+            - ../app:/var/www/app
+            # конфиг для nginx
+            - "./nginx/conf:/etc/nginx/conf.d"
+            # sertificates
+            - "./nginx/ssl:/etc/nginx/ssl"
+            # scripts
+            - "./nginx/scripts:/etc/nginx/scripts"
+            # папка с логами
+            - ./storage/log/nginx:/var/log/nginx
+        ports:
+            - "80:80"
+            - "443:443"
+        depends_on:
+            - php-fpm
+        # Подключаем к общей сети с другими контейнерами
+        networks:
+            default:
+                # задаем статический ip-адрес
+                ipv4_address: 172.32.0.10
+    # Контейнер с менеджером php
+    php-fpm:
+        build:
+            context: .
+            dockerfile: php-fpm.dockerfile
+        volumes:
+            - ../app:/var/www/app
+            # - "./ssh:/root/.ssh"
+            # свой конфиг
+            - ./php-fpm:/usr/local/etc/php/custom.d
+        depends_on:
+            - mysql
+        environment:
+            - "DB_PORT=3306"
+            - "DB_HOST=mysql"
+            - "KOHANA_ENV=development"
+            - "PHP_INI_SCAN_DIR=/usr/local/etc/php/conf.d:/usr/local/etc/php/custom.d"
+        ports:
+            - "9000:9000"
+        # Подключаем к общей сети с другими контейнерами
+        networks:
+            default:
+                # задаем статический ip-адрес
+                ipv4_address: 172.32.0.2
+        extra_hosts:
+            # добавляем домены в файл hosts, чтобы запросы на эти адреса шли на наш nginx
+            - "wciom.dev:172.32.0.10"
+    # Контейнер с базой данных
+    mysql:
+        build:
+            context: .
+            dockerfile: mysql.dockerfile
+        volumes:
+            # подключаем папку для хранения БД
+            - ./storage/mysql/db:/var/lib/mysql
+            # подключаем папку для хранения дампов баз
+            - ./storage/mysql/dump:/mysql_dump
+            # свой конфиг
+            - ./mysql/conf/:/etc/mysql/conf.d/
+        environment:
+            - "MYSQL_ROOT_PASSWORD=root"
+#            - "MYSQL_USER=root"
+#            - "MYSQL_PASSWORD=root"
+            - "MYSQL_DATABASE=wciom"
+        ports:
+            - "3306:3306"
+        # Подключаем к общей сети с другими контейнерами
+        networks:
+            default:
+                # задаем статический ip-адрес
+                ipv4_address: 172.32.0.3
+    # Контейнер с phpmyadmin
+    phpmyadmin:
+        build:
+            context: .
+            dockerfile: phpmyadmin.dockerfile
+        # Add volume for sessions to allow session persistence
+        volumes:
+            - ./storage/phpmyadmin/sessions:/sessions
+        ports:
+            - "8080:80"
+        depends_on:
+            - mysql
+        environment:
+            - VIRTUAL_HOST=phpmyadmin.test
+            - PMA_HOST=mysql
+            - PMA_ARBITRARY=1
+            - MYSQL_ROOT_PASSWORD=root
+        networks:
+            default:
+                # задаем статический ip-адрес
+                ipv4_address: 172.32.0.6
+
+# Создаем общую сеть deafult для всех контейнеров
+networks:
+    default:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.32.0.0/16"

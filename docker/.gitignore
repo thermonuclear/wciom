@@ -1,0 +1,13 @@
+.idea
+nodejs/ssh/id_rsa*
+ssh
+storage/log/memcached/
+storage/log/nginx/
+storage/mysql/db/
+storage/mysql/dump/
+storage/mariadb/db/
+storage/mariadb/dump/
+storage/phpmyadmin/
+storage/redis/
+tsung/log
+tsung/tsung.xml
