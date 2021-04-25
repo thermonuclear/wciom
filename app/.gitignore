@@ -19,7 +19,6 @@ assets.json
 composer.lock
 composer.phar
 package-lock.json
-phinx.yml
 phpunit.phar
 phpunit.xml
 Thumbs.db
